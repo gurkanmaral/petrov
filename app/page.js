@@ -8,6 +8,7 @@ import Shop from "@/components/Shop";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 
+// yalandan comment
 export default function Home() {
   return (
     <div className="flex flex-col flex-1 ">
