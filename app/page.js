@@ -11,10 +11,12 @@ import Footer from "@/components/Footer";
 // yalandan comment
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 ">
+    <div className="flex flex-col ">
       <Homepage />
       <Menu />
-      <Hakkımızda />
+      <div className="hidden md:block">
+        <Hakkımızda />
+      </div>
       <MenuDetails />
       <Banner />
       <Shop />

@@ -3,20 +3,22 @@ import React from 'react'
 
 const Footer = () => {
   return (
-    <div className='h-[361px] md:h-[206px] mt-[99px] bg-[#F4F4F4] flex flex-col items-center md:items-start justify-center'>
-        <div className='relative w-[80px] md:w-[171px] h-[22px] md:h-[47px]'>
-        <Image
-        src="/Petrov - Logo.png"
-        alt=""
-       fill
-        className=' ' 
-        />
+    <footer className='py-20 w-full'>
+          <div className=' bg-[#F4F4F4] grid grid-cols-1 md:grid-cols-2 p-5 py-10'>
+            <div className=' col-span-1 md:col-span-2   flex items-center md:items-start justify-center md:justify-start '>
+            <img
+            src="/Petrov - Logo.png"
+            alt=""    
+            className=' ' 
+            />
         </div>
-        <div className='flex flex-col-reverse  md:flex-row justify-between w-full border items-center mt-[50px] gap-[56px] '>         
-            <p className='text-[12px] font-inter text-[#6D6D6D]'>
-             © 2023 Kıratlı Creative Group. All rights reserved
-            </p>
-            <div className='flex mx-autogap-[16px] '>
+        <div className='col-span-2  flex-col-reverse md:flex-row flex '>
+          <div className=' md:w-1/2 col-span-1 flex items-center md:items-start  justify-center md:justify-start py-10'>         
+              <p className='text-[12px] md:text-[16px] font-inter text-[#6D6D6D]'>
+              © 2023 Kıratlı Creative Group. All rights reserved
+              </p>           
+          </div>
+        <div className='md:w-1/2 col-span-1 py-10 flex items-center md:items-end  justify-center md:justify-end  gap-4 '>
             <Image
                 src="/Instagram.png"
                 alt=""
@@ -47,8 +49,9 @@ const Footer = () => {
            />
             </div>
         </div>
-
-    </div>
+        </div>
+    </footer>
+    
   )
 }
 
