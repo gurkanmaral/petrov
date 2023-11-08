@@ -10,7 +10,8 @@ module.exports = {
       fontFamily: {
         poppins: ['Poppins', 'sans'],
         roboto:['Roboto', 'sans'],
-        fairplay:['FairPlay Display', 'sans'],
+        fairplay: ['"FairPlay Display"', 'sans'],     
+          inter: ['Inter', 'sans-serif'],
       },
       backgroundColor: {
         'custom-opacity': 'rgba(0,0,0,0.304)', 

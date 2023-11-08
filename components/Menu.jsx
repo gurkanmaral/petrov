@@ -2,20 +2,24 @@ import Image from 'next/image'
 import React from 'react'
 
 const Menu = () => {
+
+ 
+
   return (
-    <section className='relative  w-full flex  items-center justify-center md:mt-[20px]   '>
-        <div className='gap-[20px] md:gap-[140px] flex flex-col  w-[283px] md:w-[948px]  h-[346px] md:h-[706px]  mt-[20px] items-center '>
+    <section className='relative  flex  items-center justify-center md:mt-[20px] flex-1 border  '>
+        <div className='gap-[20px] md:gap-[140px] flex flex-col  w-[283px] md:w-[1200px] border border-blue-400 h-[346px] md:h-[706px]  mt-[20px] items-center '>
             <div className='text-center w-[208px]   md:w-[294px] h-[32px] md:h-[76px]  '>
                 <p className='text-[22px] md:text-[57px] font-fairplay '>
                     P - Menus
                 </p>
             </div>
-            <div className='flex w-full h-[290px] gap-[10px] md:gap-[45px]  '>
+            <div className='flex w-full justify-center h-[290px] gap-[10px] md:gap-[45px]  '>
                   <div className='flex flex-col gap-[10px] md:gap-[20px] md:w-[450px] md:h-[491px]'>
-                    <div className='relative w-[134px] md:w-[450px] h-[197px] md:h-[300px] '>
+                    <div className='relative w-[134px] md:w-full h-[197px] md:h-[300px] '>
                         <Image
                         src="/FSM.png"
-                        alt=""
+                        alt=""        
+                        className='object-cover'          
                         fill
                         />
                     </div>
@@ -29,10 +33,11 @@ const Menu = () => {
                    </div>
                   </div>
                   <div className='flex flex-col gap-[10px] md:gap-[20px] md:w-[450px] md:h-[491px]'>
-                    <div className='relative w-[134px] md:w-[450px] h-[197px] md:h-[300px] '>
+                    <div className='relative w-[134px] md:w-full h-[197px] md:h-[300px] '>
                         <Image
-                        src="/PodyumPark.png"
+                        src="/coffe.png"
                         alt=""
+                        className='object-cover'
                         fill
                         />
                     </div>
