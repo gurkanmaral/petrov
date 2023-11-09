@@ -23,22 +23,83 @@ const MenuItems = [
     header: "Basic",
   },
 ];
+
+const MenuItems2 = [
+  {
+    img:"/Image - 3.png",
+    title:"Smoothie Bowl",
+    desc:"Muz, çilek, granola, orman meyveleri ve kabak çekirdeğil ile.",
+    price:"280,00 ₺"
+  },
+  {
+    img:"/Image - 3.png",
+    title:"PineApple Bowl",
+    desc:"Muz, çilek, granola, orman meyveleri ve kabak çekirdeğil ile.",
+    price:"280,00 ₺"
+  },
+  {
+    img:"/Image - 3.png",
+    title:"Yeşil Bowl",
+    desc:"Muz, çilek, granola, orman meyveleri ve kabak çekirdeğil ile.",
+    price:"280,00 ₺"
+  },
+  {
+    img:"/Image - 3.png",
+    title:"Breakfast Bowl",
+    desc:"Muz, çilek, granola, orman meyveleri ve kabak çekirdeğil ile.",
+    price:"280,00 ₺"
+  }
+]
 const MenuDetails = () => {
   return (
     <>
-      <section className="container mx-auto py-20">
+      <section className="container mx-auto py-20  ">
         <div className="text-center text-[57px] font-fairplay">P | İçerik</div>
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-5 gap-y-10">
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-5 gap-y-10 py-10">
           {MenuItems.map((item) => {
             const { img, title, header } = item;
             return (
-              <div className="col-span-1">
+              <div className="col-span-1 " key={item.title}>
                 <img className="w-full object-cover" src={img} alt="" />
-                <div className="text-xl font-semibold mt-4">{title}</div>
-                <div className="text-base text-gray-700">{header}</div>
+                <div className="py-10 ">
+                <div className="font-poppins font-semibold text-[18px] md:text-[28px]">{title}</div>
+                <div className="text-[18px] font-poppins">{header}</div>
+                </div>
+                
               </div>
             );
           })}
+        </div>
+        <div className="w-full md:w-1/3 mx-auto">
+            <div className="grid grid-cols-1 gap-[20px]  ">
+                {MenuItems2.map((item,index)=>{
+                      const {img,title,desc,price} = item;
+                  return(              
+                      <div key={item.title} className={`col-span-1 flex   ${index !== 3 ? 'border-b-2' : ''}`}>
+                          <div className="w-1/3 flex items-center">
+                          <img 
+                          src={img}
+                          alt=""
+                          className="object-cover w-full p-5"
+                          />       
+                        </div>          
+                         <div className="w-2/3 flex flex-col  py-3 ">
+                            <p className="font-poppins font-semibold text-[18px] md:text-[28px]">
+                              {title}
+                            </p>
+                            <div className="">
+                              <p className="text-[8px] md:text-[16px] font-semibold font-poppins">
+                                {desc}
+                              </p>
+                              <p className="text-[8px] md:text-[16px] text-[#868686]">
+                                {price}
+                              </p>
+                            </div>
+                          </div>
+                      </div>                 
+                  )
+                })}
+            </div>
         </div>
       </section>
       {/* <section className="hidden  flex-col  items-center mt-[100px]">
