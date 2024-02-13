@@ -4,7 +4,7 @@ import React from 'react'
 
 const Contact = () => {
   return (
-    <section className='container mx-auto py-10 md:py-0'>
+    <section className='container mx-auto py-10 mt-10 px-5'>
       <div className='grid  grid-cols-1 md:grid-cols-2'>
         <div className='cols-span-1 '>
           <h2 className='font-poppins text-[28px] font-semibold'>Bize Ulaşın!</h2>
@@ -93,7 +93,7 @@ const Contact = () => {
             How can we assist you? You can reach us on any subject.
             </p>
         </div>
-          <div className='w-[90%] md:w-full mx-auto md:mt-[48px]  '>
+          <div className='w-full md:w-full mx-auto md:mt-[48px]  '>
             <form onSubmit={()=>{}} className='mt-[95px] md:mt-[0] gap-5 font-poppins font-semibold mx-auto md:mx-0 grid grid-cols-2  items-center'>             
                   <div className='col-span-2 md:col-span-1   '>
                     <p>İsim / Name</p>

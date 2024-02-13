@@ -17,7 +17,7 @@ export default function Home() {
       <div className="hidden md:block">
         <Hakkımızda />
       </div>
-      <MenuDetails />
+      {/* <MenuDetails /> */}
       <Banner />
       <Shop />
       <div className="md:hidden">
