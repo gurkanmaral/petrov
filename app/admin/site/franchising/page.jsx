@@ -2,15 +2,36 @@
 import PageHeaderSection from "@/components/admin/PageHeaderSection";
 import PageTitle from "@/components/admin/PageTitle";
 import { Button } from "@nextui-org/react";
-import { useState } from "react";
+import axios from "axios";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import { GoCheck } from "react-icons/go";
-import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+
+const ReactQuill = dynamic(() => import("react-quill"), {
+  ssr: false,
+});
 
 const FranchisingPage = () => {
   const [value, setValue] = useState("");
 
-  const handleSave = () => {};
+  // franchising detaylarını getirir
+  const getFranchising = () => {
+    axios.get("/api/site/franchising").then((res) => {
+      setValue(res.data.content);
+    });
+  };
+
+  // franchising detaylarını kaydeder
+  const handleSave = () => {
+    axios.post("/api/site/franchising", { content: value }).then((res) => {
+      alert("Franchising detayları güncellendi");
+    });
+  };
+
+  useEffect(() => {
+    getFranchising();
+  }, []);
 
   return (
     <div className="p-5">

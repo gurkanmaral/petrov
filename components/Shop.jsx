@@ -1,9 +1,36 @@
 "use client";
 
-import Image from "next/image";
-import React, { useState } from "react";
+import { Button, Modal, ModalContent, useDisclosure } from "@nextui-org/react";
+import axios from "axios";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const Shop = () => {
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [scrollBehavior, setScrollBehavior] = useState("inside");
+  const [products, setProducts] = useState([]);
+  const searchParams = useSearchParams();
+  const showShop = searchParams.get("shop");
+
+  const getShopProducts = () => {
+    axios.get("/api/site/shop").then((res) => {
+      setProducts(res.data);
+    });
+  };
+
+  useEffect(() => {
+    getShopProducts();
+  }, []);
+
+  useEffect(() => {
+    if (showShop) {
+      setTimeout(() => {
+        scrolltoHash();
+      }, 1000);
+    }
+  }, [showShop]);
+
   const Menu3 = [
     {
       img: "/Img 05.png",
@@ -37,30 +64,21 @@ const Shop = () => {
     },
   ];
 
-  const Menu4 = [
-    {
-      title: "Kahve",
-    },
-    {
-      title: "Kahve Ekipmanları ",
-    },
-    {
-      title: "Petrov Special",
-    },
-    {
-      title: "All",
-    },
-  ];
-
-  const [selected, setSelected] = useState(Menu4.length - 1);
-
   const handleItemClick = (index) => {
     setSelected(index);
   };
 
+  const scrolltoHash = function () {
+    const element = document.getElementById("shop");
+    element?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+      inline: "start",
+    });
+  };
   return (
-    <section>
-      <div className="container mx-auto  py-10 md:py-20 ">
+    <section id="shop">
+      <div className="container mx-auto py-10 md:py-20 ">
         <div className="mx-auto px-5">
           <div className="text-center ">
             <div className="flex items-center space-x-4 justify-center">
@@ -69,58 +87,83 @@ const Shop = () => {
                 src="./petrov-p.png"
                 alt=""
               />
-              <div className="text-center text-[24px] md:text-[48px] font-fairplay">SHOP</div>
-            </div>
-          </div>
-          <div className="w-full grid grid-cols-1 md:grid-cols-5 md:border-b-2 mt-[40px]">
-            {Menu4.map((item, index) => (
-              <div
-                key={item.title}
-                className={`col-span-1 py-1 md:py-5 cursor-pointer ${
-                  selected === index
-                    ? "text-[black] md:border-b-2 border-black"
-                    : "text-[#707070] "
-                }`}
-                onClick={() => handleItemClick(index)}
-              >
-                <div className="">
-                  <p>{item.title}</p>
-                </div>
+              <div className="text-center text-[24px] md:text-[48px] font-fairplay">
+                SHOP
               </div>
-            ))}
+            </div>
           </div>
           <div className="py-5 md:py-20">
-            <div className="font-poppins text-[22px] xl:text-[33px] md:font-medium   font-medium">
-              <h3>Kahve</h3>
-            </div>
-            <div className="py-5 grid grid-cols-2 lg:grid-cols-3 gap-5">
-              {Menu3.map((item) => (
-                <div key={item.title} className=" col-span-1 mt-[22px]">
-                  <div className="relative ">
-                    <img
-                      src={item.img}
-                      alt=""
-                      className="w-full object-cover "
-                    />
-                  </div>
-                  <div className=" flex flex-col md:gap-[15px] py-7 ">
-                    <div className=" ">
-                      <p className="font-poppins font-medium text-[16px]">
-                        {item.title}
-                      </p>
+            <div className="py-2 grid grid-cols-2 lg:grid-cols-3 gap-5">
+              {products.map((item) => {
+                const { name, description, price, img, _id } = item;
+                return (
+                  <div
+                    key={`shop-product-${_id}`}
+                    className="col-span-1 mt-[22px] cursor-pointer"
+                    onClick={() => {
+                      setSelectedProduct(item);
+                      onOpen();
+                    }}
+                  >
+                    <div className="relative ">
+                      <img src={img} alt="" className="w-full object-cover aspect-[1/1] " />
                     </div>
-                    <div className="">
-                      <p className="font-poppins font-medium text-[16px] text-[#868686]">
-                        {item.price}
+                    <div className=" flex flex-col py-4">
+                      <p className="font-poppins font-medium text-base">
+                        {name}
                       </p>
+                      <p className="text-sm text-gray-500">{description}</p>
+                      <div className="">
+                        <p className="font-poppins font-medium text-lg mt-2 text-gray-700">
+                          {price} ₺
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Ürün detay modal */}
+      <Modal
+        scrollBehavior={scrollBehavior}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        placement="center"
+      >
+        <ModalContent>
+          {(onClose) => (
+            <div className="p-4">
+              <div className="relative">
+                <img
+                  src={selectedProduct.img}
+                  alt=""
+                  className="w-full object-cover rounded"
+                />
+              </div>
+              <div className=" flex flex-col py-4">
+                <p className="font-poppins font-medium text-base">
+                  {selectedProduct.name}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {selectedProduct.description}
+                </p>
+                <div className="">
+                  <p className="font-poppins font-medium text-lg mt-2 text-gray-700">
+                    {selectedProduct.price} ₺
+                  </p>
+                </div>
+              </div>
+              <Button className="w-full" color="primary" onClick={onClose}>
+                Kapat
+              </Button>
+            </div>
+          )}
+        </ModalContent>
+      </Modal>
     </section>
   );
 };

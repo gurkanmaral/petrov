@@ -1,4 +1,5 @@
 "use client";
+import { MainContext } from "@/app/context";
 import PageHeaderSection from "@/components/admin/PageHeaderSection";
 import PageTitle from "@/components/admin/PageTitle";
 import {
@@ -14,48 +15,70 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import { arrayMoveImmutable } from "array-move";
+import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { GoCheck, GoImage, GoListUnordered, GoPlus } from "react-icons/go";
 import { MdOutlineDeleteSweep } from "react-icons/md";
 import { TbEyeEdit } from "react-icons/tb";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 
 const CategoryPage = () => {
+  const context = useContext(MainContext);
+  const { currentMenu } = context;
   const router = useRouter();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [showOrder, setShowOrder] = useState(false);
-  const [categories, setCategories] = useState([
-    {
-      name: "Category 1",
-      description: "Category 1 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-    },
-    {
-      name: "Category 2",
-      description: "Category 2 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-    },
-    {
-      name: "Category 3",
-      description: "Category 3 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-    },
-    {
-      name: "Category 4",
-      description: "Category 4 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-    },
-    {
-      name: "Category 5",
-      description: "Category 5 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-    },
-  ]);
+  const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState({
     name: "",
-    photo: "",
+    description: "",
+    img: "",
   });
+
+  const getCategories = async () => {
+    axios.get(`/api/menu/categories?menuKey=${currentMenu}`).then((res) => {
+      setCategories(res.data.categories);
+    });
+  };
+
+  const addCategory = (onClose) => {
+    axios
+      .post(`/api/menu/categories`, {
+        menuKey: currentMenu,
+        category: newCategory,
+      })
+      .then((res) => {
+        getCategories();
+        onClose();
+      });
+  };
+
+  const saveCategory = () => {
+    axios
+      .put(`/api/menu/categories`, {
+        menuKey: currentMenu,
+        categories,
+      })
+      .then((res) => console.log(res));
+  };
+
+  const removeCategory = (categoryId) => {
+    axios
+      .delete(`/api/menu/categories`, {
+        data: {
+          menuKey: currentMenu,
+          categoryId,
+        },
+      })
+      .then((res) => {
+        getCategories();
+      });
+  };
+
+  useEffect(() => {
+    getCategories();
+  }, []);
 
   const SortableList = SortableContainer(({ items }) => {
     return (
@@ -72,11 +95,7 @@ const CategoryPage = () => {
       <div key={value.name} className="w-full">
         <Card className="w-full flex flex-row justify-between items-center p-2">
           <div className="flex items-center space-x-2">
-            <img
-              className="w-14 rounded-xl"
-              src={value.photo}
-              alt={value.name}
-            />
+            <img className="w-14 rounded-xl" src={value.img} alt={value.name} />
             <div className="">
               <p className="font-medium">{value.name}</p>
               <p className="text-sm text-gray-600">{value.description}</p>
@@ -93,6 +112,26 @@ const CategoryPage = () => {
     );
   };
 
+  const handleChangePhoto = (file) => {
+    const url = "https://cdn.petrov.com.tr"; // Uygulamanın port numarasını uygun şekilde değiştirin
+
+    const formData = new FormData();
+    formData.append("image", file.target.files[0]);
+
+    axios
+      .post(url, formData)
+      .then((response) => {
+        setNewCategory((prev) => ({
+          ...prev,
+          img: response.data.url,
+        }));
+      })
+      .catch((error) => {
+        console.error("İstek başarısız!");
+        console.error(error.response.data);
+      });
+  };
+
   return (
     <div className="p-5">
       <PageHeaderSection>
@@ -101,7 +140,12 @@ const CategoryPage = () => {
           <Button
             color="primary"
             size="small"
-            onClick={() => setShowOrder(!showOrder)}
+            onClick={() => {
+              if (showOrder) {
+                saveCategory();
+              }
+              setShowOrder(!showOrder);
+            }}
             startContent={
               showOrder ? <GoCheck size={20} /> : <GoListUnordered size={20} />
             }
@@ -132,16 +176,12 @@ const CategoryPage = () => {
               key={index}
               className="w-full cursor-pointer"
               // categoryId index yerine id olarak değiştirilecek
-
-              onClick={() =>
-                router.push(`/admin/menu/kategoriler/detay?categoryId=${index}`)
-              }
             >
               <Card className="w-full flex flex-row justify-between items-center p-2">
                 <div className="flex items-center space-x-2">
                   <img
                     className="w-14 rounded-xl flex-shrink-0"
-                    src={category.photo}
+                    src={category.img}
                     alt={category.name}
                   />
                   <div className="flex-grow">
@@ -154,12 +194,22 @@ const CategoryPage = () => {
                 <div className="px-2 flex-shrink-0">
                   <div className="relative flex justify-end items-end space-x-3">
                     <Tooltip content="Düzenle">
-                      <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                      <span
+                        onClick={() =>
+                          router.push(
+                            `/admin/menu/kategoriler/detay?categoryId=${category._id}`
+                          )
+                        }
+                        className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                      >
                         <TbEyeEdit size={24} />
                       </span>
                     </Tooltip>
                     <Tooltip color="danger" content="Sil">
-                      <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                      <span
+                        onClick={() => removeCategory(category._id)}
+                        className="text-lg text-danger cursor-pointer active:opacity-50"
+                      >
                         <MdOutlineDeleteSweep size={24} />
                       </span>
                     </Tooltip>
@@ -180,13 +230,34 @@ const CategoryPage = () => {
                 Yeni Kategori Ekle
               </ModalHeader>
               <ModalBody>
-                <Input label="Kategori Adı" placeholder="Kategori adı girin" />
-                {newCategory.photo && <img src={newCategory.photo} alt="" />}
+                <Input
+                  label="Kategori Adı"
+                  placeholder="Kategori adı girin"
+                  value={newCategory.name}
+                  onChange={(e) => {
+                    setNewCategory((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }));
+                  }}
+                />
+                <Input
+                  label="Kategori Açıklaması"
+                  placeholder="Kategori açıklaması girin"
+                  value={newCategory.description}
+                  onChange={(e) => {
+                    setNewCategory((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }));
+                  }}
+                />
+                {newCategory.img && <img src={newCategory.img} alt="" />}
                 <label
                   htmlFor="file"
                   className="inline-flex text-sm items-center space-x-2 cursor-pointer bg-indigo-500 text-white py-2 px-4 rounded-xl transition-all duration-200 hover:bg-primary-600 border-none"
                 >
-                  {newCategory.photo ? (
+                  {newCategory.img ? (
                     <>
                       <GoImage size={20} />
                       <span>Kategori Fotoğrafını Düzenle</span>
@@ -203,7 +274,7 @@ const CategoryPage = () => {
                   id="file"
                   className="hidden"
                   accept="image/*"
-                  // onChange={handleChangePhoto}
+                  onChange={handleChangePhoto}
                 />
               </ModalBody>
               <ModalFooter>
@@ -213,7 +284,9 @@ const CategoryPage = () => {
                 <Button
                   color="success"
                   className="text-white"
-                  onPress={onClose}
+                  onPress={() => {
+                    addCategory(onClose);
+                  }}
                 >
                   Kategoriyi Ekle
                 </Button>

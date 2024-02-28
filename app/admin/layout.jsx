@@ -1,29 +1,59 @@
 "use client";
-import { Inter } from "next/font/google";
 import "@/app/globals.css";
-import { Providers } from "@/app/providers";
-import { useState } from "react";
-import MainContextProvider from "@/app/context";
 import SideBar from "@/components/admin/SideBar";
-import { usePathname } from "next/navigation";
+import { checkUserInLocalStorage, login } from "@/utils/auth";
+import { Spinner } from "@nextui-org/react";
+import { Inter } from "next/font/google";
+import { usePathname, useRouter } from "next/navigation";
+import { useContext, useEffect, useState } from "react";
+import { MainContext } from "../context";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function RootLayout({ children }) {
+const RootLayout = ({ children }) => {
   const pathname = usePathname();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const context = useContext(MainContext);
+  const router = useRouter();
+  const { user, setUser } = context;
+  const [userChecked, setUserChecked] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      checkUserInLocalStorage
+        .then((user) => {
+          const { username, password } = user;
+          login(username, password).then((res) => {
+            setUser(res.accessToken);
+            setUserChecked(true);
+          });
+        })
+        .catch(() => {
+          setUserChecked(true);
+          router.replace("/admin/login");
+        });
+    }
+  }, [pathname]);
+
   return (
-    // <MainContextProvider value={{ isAdmin, setIsAdmin }}>
-    //   <Providers>
+    <>
+      {userChecked ? (
         <div className="flex flex-col lg:flex-row lg:max-h-screen lg:h-screen">
-          {pathname.includes("login") || pathname === "/admin" ? null : (
+          {pathname.includes("login") || pathname === "/admin" ? null : user ? (
             <div className="lg:h-full">
               <SideBar />
             </div>
-          )}
-          <div className="lg:flex-grow">{children}</div>
+          ) : null}
+          <div className="lg:flex-grow">
+            {(pathname.includes("login") || user) && children}
+          </div>
         </div>
-    //   </Providers>
-    // </MainContextProvider>
+      ) : (
+        <div className="flex justify-center items-center h-screen">
+          <Spinner color="primary" />
+        </div>
+      )}
+    </>
   );
-}
+};
+
+export default RootLayout;

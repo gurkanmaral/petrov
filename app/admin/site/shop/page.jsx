@@ -13,8 +13,9 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import { arrayMoveImmutable } from "array-move";
+import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GoCheck, GoImage, GoListUnordered, GoPlus } from "react-icons/go";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 
@@ -25,41 +26,10 @@ const ProductListPage = () => {
     name: "",
     description: "",
     price: "",
-    photo: "",
+    img: "",
   });
   const [showOrder, setShowOrder] = useState(false);
-  const [products, setProducts] = useState([
-    {
-      name: "Ürün Adı",
-      description: "Ürün Açıklaması",
-      price: "99,91₺",
-      photo: "https://via.placeholder.com/1600x1600",
-    },
-    {
-      name: "Ürün Adı",
-      description: "Ürün Açıklaması",
-      price: "99,92₺",
-      photo: "https://via.placeholder.com/1600x1600",
-    },
-    {
-      name: "Ürün Adı",
-      description: "Ürün Açıklaması",
-      price: "99,93₺",
-      photo: "https://via.placeholder.com/1600x1600",
-    },
-    {
-      name: "Ürün Adı",
-      description: "Ürün Açıklaması",
-      price: "99,94₺",
-      photo: "https://via.placeholder.com/1600x1600",
-    },
-    {
-      name: "Ürün Adı",
-      description: "Ürün Açıklaması",
-      price: "99,95₺",
-      photo: "https://via.placeholder.com/1600x1600",
-    },
-  ]);
+  const [products, setProducts] = useState([]);
   const router = useRouter();
 
   const SortableList = SortableContainer(({ items }) => {
@@ -79,7 +49,7 @@ const ProductListPage = () => {
           <div className="flex items-center space-x-2">
             <img
               className="w-14 rounded-xl flex-shrink-0"
-              src={value.photo}
+              src={value.img}
               alt={value.name}
             />
             <div className="flex-grow">
@@ -111,6 +81,52 @@ const ProductListPage = () => {
     onOpen();
   };
 
+  const getShopProducts = () => {
+    axios.get("/api/site/shop").then((res) => {
+      setProducts(res.data);
+    });
+  };
+
+  const postNewProduct = () => {
+    axios.post("/api/site/shop", newProduct).then((res) => {
+      getShopProducts();
+    });
+  };
+
+  const updateProduct = () => {
+    axios.put("/api/site/shop", newProduct).then((res) => {
+      getShopProducts();
+    });
+  };
+
+  const deleteProduct = (id, onClose) => {
+    axios.delete("/api/site/shop", { data: { _id: id } }).then((res) => {
+      getShopProducts();
+      onClose();
+    });
+  };
+
+  useEffect(() => {
+    getShopProducts();
+  }, []);
+
+  const handleChangePhoto = (file) => {
+    const url = "https://cdn.petrov.com.tr"; // Uygulamanın port numarasını uygun şekilde değiştirin
+
+    const formData = new FormData();
+    formData.append("image", file.target.files[0]);
+
+    axios
+      .post(url, formData)
+      .then((response) => {
+        setNewProduct({ ...newProduct, img: response.data.url });
+      })
+      .catch((error) => {
+        console.error("İstek başarısız!");
+        console.error(error.response.data);
+      });
+  };
+
   return (
     <div className="p-5">
       <PageHeaderSection>
@@ -132,7 +148,7 @@ const ProductListPage = () => {
                 name: "",
                 description: "",
                 price: "",
-                photo: "",
+                img: "",
               });
               setModalType("newProduct");
               onOpen();
@@ -153,14 +169,18 @@ const ProductListPage = () => {
           onSortEnd={onSortEnd}
         />
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-stretch">
           {products.map((product) => (
             <div onClick={() => handleItemClick(product)}>
-              <Card className="col-span-1">
-                <img src={product.photo} alt="Product" />
-                <div className="p-4">
-                  <p className="font-medium">{product.name}</p>
-                  <p className="text-sm text-gray-600">{product.description}</p>
+              <Card className="col-span-1 h-full">
+                <img src={product.img} alt="Product" />
+                <div className="p-4 flex flex-grow flex-col justify-between">
+                  <div>
+                    <p className="font-medium">{product.name}</p>
+                    <p className="text-sm text-gray-600">
+                      {product.description}
+                    </p>
+                  </div>
                   <p className="font-bold mt-2">{product.price}</p>
                 </div>
               </Card>
@@ -215,7 +235,7 @@ const ProductListPage = () => {
                   htmlFor="file"
                   className="inline-flex text-sm items-center space-x-2 cursor-pointer bg-indigo-500 text-white py-2 px-4 rounded-xl transition-all duration-200 hover:bg-primary-600 border-none"
                 >
-                  {newProduct.photo ? (
+                  {newProduct.img ? (
                     <>
                       <GoImage size={20} />
                       <span>Ürün Fotoğrafını Düzenle</span>
@@ -232,21 +252,39 @@ const ProductListPage = () => {
                   id="file"
                   className="hidden"
                   accept="image/*"
-                  // onChange={handleChangePhoto}
+                  onChange={handleChangePhoto}
                 />
-                {newProduct.photo && <img src={newProduct.photo} alt="" />}
+                {newProduct.img && <img src={newProduct.img} alt="" />}
               </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Vazgeç
-                </Button>
+              <ModalFooter className="flex flex-row justify-between items-center">
                 <Button
-                  color="success"
-                  className="text-white"
-                  onPress={onClose}
+                  color="danger"
+                  onPress={() => {
+                    deleteProduct(newProduct._id, onClose);
+                  }}
                 >
-                  {modalType === "newProduct" ? "Ekle" : "Güncelle"}
+                  Ürünü Sil
                 </Button>
+                <div className="flex space-x-2">
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    Vazgeç
+                  </Button>
+                  <Button
+                    color="success"
+                    className="text-white"
+                    onPress={() => {
+                      if (modalType === "newProduct") {
+                        postNewProduct();
+                        onClose();
+                      } else {
+                        updateProduct();
+                        onClose();
+                      }
+                    }}
+                  >
+                    {modalType === "newProduct" ? "Ekle" : "Güncelle"}
+                  </Button>
+                </div>
               </ModalFooter>
             </>
           )}

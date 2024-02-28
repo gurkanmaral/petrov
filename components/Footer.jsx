@@ -1,5 +1,4 @@
 import Image from "next/image";
-import React from "react";
 
 const Footer = () => {
   return (
@@ -12,7 +11,23 @@ const Footer = () => {
           <div className="col-span-2 flex-col-reverse md:flex-row flex">
             <div className=" md:w-1/2 col-span-1 flex items-center md:items-start  justify-center md:justify-start mt-10">
               <p className="text-[12px] md:text-[16px] font-inter text-[#6D6D6D]">
-                © 2023 Kıratlı Creative Group. All rights reserved
+                © 2023{" "}
+                <a
+                  href="https://kiratlicreative.com"
+                  target="_blank"
+                  className="font-medium text-gray-700"
+                >
+                  Kıratlı Creative Group
+                </a>{" "}
+                &{" "}
+                <a
+                  href="https://furkraft.com"
+                  target="_blank"
+                  className="font-medium text-gray-700"
+                >
+                  furkraft
+                </a>
+                . All rights reserved
               </p>
             </div>
             <div className="md:w-1/2 col-span-1 mt-10 flex items-center md:items-end  justify-center md:justify-end gap-4 ">

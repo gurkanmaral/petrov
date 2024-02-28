@@ -1,19 +1,24 @@
 "use client";
 import PageHeaderSection from "@/components/admin/PageHeaderSection";
 import PageTitle from "@/components/admin/PageTitle";
-import { Button, Card, Input } from "@nextui-org/react";
-import React, { useState } from "react";
-import { GoCheck, GoPlus, GoTrash } from "react-icons/go";
 import {
+  Button,
+  Card,
+  Input,
   Modal,
-  ModalContent,
-  ModalHeader,
   ModalBody,
+  ModalContent,
   ModalFooter,
+  ModalHeader,
   useDisclosure,
 } from "@nextui-org/react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { GoCheck, GoPlus, GoTrash } from "react-icons/go";
 
 const App = () => {
+  const router = useRouter();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [addresses, setAddresses] = useState([
@@ -82,6 +87,29 @@ const App = () => {
     onOpen();
   };
 
+  const getContactInfos = () => {
+    axios.get("/api/site/iletisim").then((res) => {
+      const { contacts } = res.data;
+      setAddresses(contacts.addresses);
+      setEmails(contacts.emails);
+      setPhoneNumbers(contacts.phones);
+    });
+  };
+
+  const postContactInfos = () => {
+    axios
+      .post("/api/site/iletisim", {
+        contacts: { addresses, emails, phones: phoneNumbers },
+      })
+      .then((res) => {
+        router.refresh();
+      });
+  };
+
+  useEffect(() => {
+    getContactInfos();
+  }, []);
+
   return (
     <div className="p-5">
       <PageHeaderSection>
@@ -90,6 +118,9 @@ const App = () => {
           startContent={<GoCheck size={20} />}
           color="success"
           className="text-white"
+          onClick={() => {
+            postContactInfos();
+          }}
         >
           Değişiklikleri Kaydet
         </Button>

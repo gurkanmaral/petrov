@@ -1,111 +1,102 @@
 "use client";
-import { Card } from "@nextui-org/react";
+import { MainContext } from "@/app/context";
+import {
+  Button,
+  Card,
+  Modal,
+  ModalContent,
+  useDisclosure,
+} from "@nextui-org/react";
+import axios from "axios";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useContext, useEffect, useState } from "react";
 import Slider from "react-slick";
 
-const MenuItems = [
-  {
-    img: "/Image - 1.png",
-    title: "Günaydın Petrov",
-    header: "Good Morning Petrov",
-  },
-  {
-    img: "/Image - 2.png",
-    title: "Ekmek Üstü",
-    header: "Bread Top",
-  },
-  {
-    img: "/Image - 3.png",
-    title: "Bowls",
-    header: "Bowls",
-  },
-  {
-    img: "/Image - 4.png",
-    title: "Petrov Basic",
-    header: "Basic",
-  },
-  {
-    img: "/Image - 1.png",
-    title: "Günaydın Petrov",
-    header: "Good Morning Petrov",
-  },
-  {
-    img: "/Image - 2.png",
-    title: "Ekmek Üstü",
-    header: "Bread Top",
-  },
-  {
-    img: "/Image - 3.png",
-    title: "Bowls",
-    header: "Bowls",
-  },
-  {
-    img: "/Image - 4.png",
-    title: "Petrov Basic",
-    header: "Basic",
-  },
-];
-
-const MenuItems2 = [
-  {
-    img: "/Image - 3.png",
-    title: "Smoothie Bowl",
-    desc: "Muz, çilek, granola, orman meyveleri ve kabak çekirdeğil ile.",
-    price: "280,00 ₺",
-  },
-  {
-    img: "/Image - 3.png",
-    title: "PineApple Bowl",
-    desc: "Muz, çilek, granola, orman meyveleri ve kabak çekirdeğil ile.",
-    price: "280,00 ₺",
-  },
-  {
-    img: "/Image - 3.png",
-    title: "Yeşil Bowl",
-    desc: "Muz, çilek, granola, orman meyveleri ve kabak çekirdeğil ile.",
-    price: "280,00 ₺",
-  },
-  {
-    img: "/Image - 3.png",
-    title: "Breakfast Bowl",
-    desc: "Muz, çilek, granola, orman meyveleri ve kabak çekirdeğil ile.",
-    price: "280,00 ₺",
-  },
-];
 const MenuDetails = () => {
+  const context = useContext(MainContext);
+  const { currentMenu, setCurrentCategory } = context;
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [menu, setMenu] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [scrollBehavior, setScrollBehavior] = useState("inside");
+
+  const variants = {
+    hidden: { opacity: 0, x: 0, y: 0 },
+    enter: { opacity: 1, x: 0, y: 0 },
+  };
+
+  const getFeaturedProducts = () => {
+    console.log("--currentMenu", currentMenu);
+
+    axios
+      .get(`/api/menu/featured-products?menuKey=${currentMenu}`)
+      .then((res) => {
+        setFeaturedProducts(res.data.featuredProducts);
+      });
+  };
+
+  const getCategoryAndProducts = () => {
+    console.log("--currentMenu", currentMenu);
+
+    axios.get(`/api/menu/categories?menuKey=${currentMenu}`).then((res) => {
+      setMenu(res.data.categories);
+    });
+  };
+
   const sliderSettings = {
     dots: false,
     infinite: false,
     speed: 500,
+    arrows: false,
     slidesToShow: 2.5,
     slidesToScroll: 2,
   };
 
   const RenderFeaturedProduct = ({ product }) => {
-    const { title, desc, price, img } = product;
+    const { name, description, price, img } = product;
     return (
-      <Card className="mx-2 shadow-lg mb-4 mt-2 p-4">
-        <div className="flex flex-col space-y-4">
-          <img
-            className="aspect-[1/1] w-full object-cover rounded-lg"
-            src={img}
-            alt=""
-          />
-          <div className="flex flex-col space-y-1">
-            <div className="font-bold text-sm">{title}</div>
-            <div className="text-gray-600 text-xs">{desc}</div>
-            <div className="font-semibold text-sm !mt-2">{price}</div>
+      <div
+        className="cursor-pointer"
+        onClick={() => {
+          setSelectedProduct(product);
+          onOpen();
+        }}
+      >
+        <Card className="mx-1.5 shadow-lg mb-4 mt-2">
+          <div className="flex flex-col space-y-0">
+            <img
+              className="aspect-[1/1] w-full object-cover rounded-t-lg"
+              src={img}
+              alt=""
+            />
+            <div className="flex flex-col space-y-0.5 p-2.5">
+              <div className="font-medium text-sm line-clamp-1">{name}</div>
+              <div className="text-gray-600 text-xs line-clamp-1">
+                {description}
+              </div>
+              <div className="font-semibold text-sm !mt-2">{price} ₺</div>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
     );
   };
   const router = useRouter();
+
+  useEffect(() => {
+    if (featuredProducts.length === 0 || menu.length === 0) {
+      getFeaturedProducts();
+      getCategoryAndProducts();
+    }
+  }, []);
+
   return (
     <>
-      <section className="container mx-auto py-10 md:py-20 px-4">
+      <section id="menu" className="container mx-auto py-5 md:py-20">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between px-4">
           <div className="cursor-pointer" onClick={() => router.back()}>
             <svg
               viewBox="0 0 24 24"
@@ -124,7 +115,7 @@ const MenuDetails = () => {
 
           <div className="flex items-center space-x-4 justify-center">
             <img
-              className="h-10 border-r border-black px-4"
+              className="h-6 border-r border-black px-4"
               src="./petrov-p.png"
               alt=""
             />
@@ -133,61 +124,104 @@ const MenuDetails = () => {
           <div className="w-10"></div>
         </div>
 
-        <div className="text-xl font-semibold !mt-8">Öne Çıkan Ürünlerimiz</div>
+        {/* Featured Products */}
+        <div className="pl-4">
+          <div className="text-xl font-light !mt-8">Öne Çıkan Ürünlerimiz</div>
 
-        <Slider {...sliderSettings} className="-mx-2">
-          {MenuItems2.map((product) => {
-            return <RenderFeaturedProduct product={product} />;
-          })}
-        </Slider>
-
-        <div className="text-xl font-semibold !mt-8">Kategoriler</div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 pb-10 pt-4">
-          {MenuItems.map((item) => {
-            const { img, title, header } = item;
-            return (
-              <div className="col-span-1 " key={item.title}>
-                <img className="w-full object-cover" src={img} alt="" />
-                <div className="mt-4">
-                  <div className="font-poppins font-medium text-[18px] md:text-[28px]">
-                    {title}
-                  </div>
-                  <div className="text-[14px] font-poppins">{header}</div>
-                </div>
-              </div>
-            );
-          })}
+          {featuredProducts.length > 0 && (
+            <motion.div
+              variants={variants}
+              initial="hidden"
+              animate="enter"
+              transition={{ type: "linear" }}
+            >
+              <Slider {...sliderSettings} className="-ml-2">
+                {featuredProducts.map((product, index) => {
+                  return (
+                    <RenderFeaturedProduct key={index} product={product} />
+                  );
+                })}
+              </Slider>
+            </motion.div>
+          )}
         </div>
-        <div className="w-full md:w-1/3 mx-auto">
-          <div className="grid grid-cols-1 gap-[20px]  ">
-            {MenuItems2.map((item, index) => {
-              const { img, title, desc, price } = item;
-              return (
-                <div
-                  key={item.title}
-                  className={`col-span-1 flex space-x-4   ${
-                    index !== 3 ? "border-b-2" : ""
-                  }`}
-                >
-                  <div className="w-1/3 flex items-center">
-                    <img src={img} alt="" className="object-cover w-full" />
-                  </div>
-                  <div className="w-2/3 flex flex-col  py-3 ">
-                    <p className="font-poppins font-semibold text-[18px] md:text-[24px]">
-                      {title}
+
+        {/* Ürün detay modal */}
+        <Modal
+          scrollBehavior={scrollBehavior}
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          placement="bottom"
+        >
+          <ModalContent>
+            {(onClose) => (
+              <div className="p-4">
+                <div className="relative">
+                  <img
+                    src={selectedProduct.img}
+                    alt=""
+                    className="w-full object-cover rounded"
+                  />
+                </div>
+                <div className=" flex flex-col py-4">
+                  <p className="font-poppins font-medium text-base">
+                    {selectedProduct.name}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {selectedProduct.description}
+                  </p>
+                  <div className="">
+                    <p className="font-poppins font-medium text-lg mt-2 text-gray-700">
+                      {selectedProduct.price} ₺
                     </p>
-                    <div className="">
-                      <p className="text-[14px] font-poppins">{desc}</p>
-                      <p className="text-[16px] font-medium text-gray-500">
-                        {price}
-                      </p>
-                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+                <Button className="w-full" color="primary" onClick={onClose}>
+                  Kapat
+                </Button>
+              </div>
+            )}
+          </ModalContent>
+        </Modal>
+
+        {/* Categories */}
+        <div className="px-4">
+          <div className="text-xl font-light !mt-8">Kategoriler</div>
+
+          {menu.length > 0 && (
+            <motion.div
+              variants={variants}
+              initial="hidden"
+              animate="enter"
+              transition={{ type: "linear" }}
+            >
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-10 pt-4">
+                {menu.map((item) => {
+                  const { img, name, description } = item;
+                  return (
+                    <div
+                      onClick={() => {
+                        setCurrentCategory(item);
+                        router.push("/menu/kategori");
+                      }}
+                      className="col-span-1"
+                      key={item.name}
+                    >
+                      <img className="w-full object-cover" src={img} alt="" />
+                      <div className="mt-2">
+                        <div className="font-poppins font-medium text-base md:text-[28px]">
+                          {name}
+                        </div>
+                        <div className="text-[14px] text-gray-600">
+                          {description}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
     </>

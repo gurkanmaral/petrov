@@ -1,19 +1,15 @@
 "use client";
 import PageTitle from "@/components/admin/PageTitle";
-import {
-  Button,
-  Card,
-  Tooltip
-} from "@nextui-org/react";
+import { Button, Card, Tooltip } from "@nextui-org/react";
 import { arrayMoveImmutable } from "array-move";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GoCheck, GoListUnordered, GoPlus } from "react-icons/go";
 import { MdOutlineDeleteSweep } from "react-icons/md";
 import { TbEyeEdit } from "react-icons/tb";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 
+import axios from "axios";
 import { useRouter } from "next/navigation";
-import { users } from "./data";
 
 const statusColorMap = {
   active: "success",
@@ -22,9 +18,19 @@ const statusColorMap = {
 };
 
 export default function page() {
+  const getSliders = () => {
+    axios.get("/api/site/sliders").then((res) => {
+      setSliders(res.data);
+    });
+  };
+
+  useEffect(() => {
+    getSliders();
+  }, []);
+
   const router = useRouter();
   const [showOrder, setShowOrder] = useState(false);
-  const [sliders, setSliders] = useState(users);
+  const [sliders, setSliders] = useState([]);
   const SortableList = SortableContainer(({ items }) => {
     return (
       <div className="grid grid-cols-4 gap-5 items-center">
@@ -43,15 +49,10 @@ export default function page() {
   const SortableItem = SortableElement(({ value }) => {
     return (
       <>
-        <div key={value.id} className="col-span-3">
+        <div key={value._id} className="col-span-3">
           <div className="flex items-center space-x-2">
-            <img className="h-10 rounded" src={value.image} alt="" />
-            <div>
-              <div className="text-base">{value.name}</div>
-              <div className="text-xs font-medium text-gray-500">
-                {value.date.toLocaleString("tr-TR")} tarihinde oluşturuldu
-              </div>
-            </div>
+            <img className="h-10 rounded" src={value.img} alt="" />
+            <div className="text-base">{value.title}</div>
           </div>
         </div>
         <div className="col-span-1">
@@ -78,6 +79,18 @@ export default function page() {
     );
   };
 
+  const saveSlidersOrder = () => {
+    axios.post("/api/site/sliders", { sliders }).then((res) => {
+      setShowOrder(false);
+    });
+  };
+
+  const deleteSlider = (id) => {
+    axios.delete("/api/site/slider", { data: { _id: id } }).then((res) => {
+      getSliders();
+    });
+  };
+
   return (
     <div className="p-5">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-5">
@@ -87,7 +100,9 @@ export default function page() {
           <Button
             color="primary"
             size="small"
-            onClick={() => setShowOrder(!showOrder)}
+            onClick={() => {
+              showOrder ? saveSlidersOrder() : setShowOrder(true);
+            }}
             startContent={
               showOrder ? <GoCheck size={20} /> : <GoListUnordered size={20} />
             }
@@ -126,25 +141,31 @@ export default function page() {
                 <>
                   <div key={item.id} className="col-span-3">
                     <div className="flex items-center space-x-2">
-                      <img className="h-10 rounded" src={item.image} alt="" />
+                      <img className="h-10 rounded" src={item.img} alt="" />
                       <div>
-                        <div className="text-base">{item.name}</div>
-                        <div className="text-xs font-medium text-gray-500">
-                          {item.date.toLocaleString("tr-TR")} tarihinde
-                          oluşturuldu
-                        </div>
+                        <div className="text-base">{item.title}</div>
                       </div>
                     </div>
                   </div>
                   <div className="col-span-1">
                     <div className="relative flex justify-end items-end gap-2">
                       <Tooltip content="Düzenle">
-                        <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                        <span
+                          onClick={() =>
+                            router.push(
+                              `/admin/site/slider/duzenle?id=${item._id}`
+                            )
+                          }
+                          className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                        >
                           <TbEyeEdit />
                         </span>
                       </Tooltip>
                       <Tooltip color="danger" content="Sil">
-                        <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                        <span
+                          onClick={() => deleteSlider(item._id)}
+                          className="text-lg text-danger cursor-pointer active:opacity-50"
+                        >
                           <MdOutlineDeleteSweep />
                         </span>
                       </Tooltip>

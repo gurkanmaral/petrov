@@ -14,7 +14,7 @@ export default function MenuSelect() {
         isSelected={currentMenu === "fsm"}
         onValueChange={(value) => {
           setCurrentMenu(value ? "fsm" : "podyumpark");
-          router.push("/admin/dashboard")
+          router.push("/admin/site/slider")
         }}
       >
         <div className="text-sm text-gray-600">

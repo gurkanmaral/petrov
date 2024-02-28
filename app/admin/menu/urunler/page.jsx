@@ -1,9 +1,8 @@
 "use client";
+import { MainContext } from "@/app/context";
 import PageHeaderSection from "@/components/admin/PageHeaderSection";
 import PageTitle from "@/components/admin/PageTitle";
 import {
-  Autocomplete,
-  AutocompleteItem,
   Button,
   Card,
   Input,
@@ -12,76 +11,30 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  Switch,
   Tooltip,
   useDisclosure,
 } from "@nextui-org/react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import axios from "axios";
+import { useContext, useEffect, useState } from "react";
 import { GoImage, GoPlus } from "react-icons/go";
 import { TbEyeEdit } from "react-icons/tb";
 
 const CategoryPage = () => {
-  const router = useRouter();
-  const categories = [
-    {
-      name: "Category 1",
-      description: "Category 1 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-      id: 1,
-    },
-    {
-      name: "Category 2",
-      description: "Category 2 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-      id: 2,
-    },
-    {
-      name: "Category 3",
-      description: "Category 3 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-      id: 3,
-    },
-    {
-      name: "Category 4",
-      description: "Category 4 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-      id: 4,
-    },
-    {
-      name: "Category 5",
-      description: "Category 5 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-      id: 5,
-    },
-  ];
+  const context = useContext(MainContext);
+  const { currentMenu } = context;
+  const getProducts = async () => {
+    axios.get(`/api/menu/product?menuKey=${currentMenu}`).then((res) => {
+      setProducts(res.data.products);
+      setSearchProducts(res.data.products);
+      console.log(res.data.products);
+    });
+  };
+  useEffect(() => {
+    getProducts();
+  }, []);
 
-  const [products, setProducts] = useState([
-    {
-      name: "Burger",
-      description: "Product 1 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-      price: "100,00",
-      categoryId: 1,
-      isFeaturedProduct: true,
-    },
-    {
-      name: "Tavuk",
-      description: "Product 2 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-      price: "95,00",
-      categoryId: 2,
-      isFeaturedProduct: false,
-    },
-    {
-      name: "Kahvaltı",
-      description: "Product 3 Description",
-      photo: "https://via.placeholder.com/1600x1600",
-      price: "185,00",
-      categoryId: 3,
-      isFeaturedProduct: false,
-    },
-  ]);
+
+  const [products, setProducts] = useState([]);
   const [searchProducts, setSearchProducts] = useState(products);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [modalType, setModalType] = useState("newProduct");
@@ -89,7 +42,7 @@ const CategoryPage = () => {
   const [newProduct, setNewProduct] = useState({
     name: "",
     description: "",
-    photo: "https://via.placeholder.com/1000x1000",
+    img: "",
     price: null,
     categoryId: null,
     isFeaturedProduct: false,
@@ -99,6 +52,59 @@ const CategoryPage = () => {
     setModalType("editProduct");
     setNewProduct(product);
     onOpen();
+  };
+
+  const editProduct = () => {
+    axios
+      .patch(`/api/menu/product`, { menuKey: currentMenu, product: newProduct })
+      .then((res) => {
+        console.log(res);
+        getProducts();
+      });
+  };
+
+  const postNewProduct = () => {
+    axios
+      .post(`/api/menu/product?menuKey=${currentMenu}`, {
+        product: newProduct,
+        menuKey: currentMenu,
+      })
+      .then((res) => {
+        getProducts();
+      });
+  };
+
+  const deleteProduct = () => {
+    console.log("deleteProduct", newProduct._id);
+    console.log("currentMenu", currentMenu);
+    axios
+      .delete(`/api/menu/product`, {
+        data: {
+          menuKey: currentMenu,
+          productKey: newProduct._id,
+        },
+      })
+      .then((res) => {
+        console.log(res);
+        getProducts();
+      });
+  };
+
+  const handleChangePhoto = (file) => {
+    const url = "https://cdn.petrov.com.tr"; // Uygulamanın port numarasını uygun şekilde değiştirin
+
+    const formData = new FormData();
+    formData.append("image", file.target.files[0]);
+
+    axios
+      .post(url, formData)
+      .then((response) => {
+        setNewProduct({ ...newProduct, img: response.data.url });
+      })
+      .catch((error) => {
+        console.error("İstek başarısız!");
+        console.error(error.response.data);
+      });
   };
 
   return (
@@ -115,7 +121,7 @@ const CategoryPage = () => {
             setNewProduct({
               name: "",
               description: "",
-              photo: "https://via.placeholder.com/1000x1000",
+              img: "",
               price: null,
               categoryId: null,
               isFeaturedProduct: false,
@@ -150,8 +156,8 @@ const CategoryPage = () => {
             <Card className="w-full flex flex-row justify-between items-center p-2">
               <div className="flex items-center space-x-2">
                 <img
-                  className="w-14 rounded-xl flex-shrink-0"
-                  src={product.photo}
+                  className="w-14 h-14 object-cover rounded-xl flex-shrink-0"
+                  src={product.img}
                   alt={product.name}
                 />
                 <div className="flex-grow">
@@ -178,7 +184,7 @@ const CategoryPage = () => {
 
       {/* Ürün ekle modal */}
       <Modal
-        scrollBehavior="inside"
+        // scrollBehavior="inside"
         isOpen={isOpen}
         onOpenChange={onOpenChange}
       >
@@ -219,34 +225,11 @@ const CategoryPage = () => {
                     });
                   }}
                 />
-                <Autocomplete
-                  label="Ürün Kategorisi Seçin"
-                  defaultSelectedKey={newProduct.categoryId?.toString()}
-                  selectedKey={newProduct.categoryId?.toString()}
-                  onSelectionChange={(e) => {
-                    setNewProduct({ ...newProduct, categoryId: e });
-                  }}
-                >
-                  {categories.map((category) => (
-                    <AutocompleteItem key={category.id} value={category.id}>
-                      {category.name}
-                    </AutocompleteItem>
-                  ))}
-                </Autocomplete>
-                <Switch
-                  isSelected={newProduct.isFeaturedProduct}
-                  onValueChange={(e) => {
-                    setNewProduct({ ...newProduct, isFeaturedProduct: e });
-                  }}
-                  defaultSelected={false}
-                >
-                  Öne çıkan ürünlerde göster
-                </Switch>
                 <label
                   htmlFor="file"
                   className="inline-flex text-sm items-center space-x-2 cursor-pointer bg-indigo-500 text-white py-2 px-4 rounded-xl transition-all duration-200 hover:bg-primary-600 border-none"
                 >
-                  {newProduct.photo ? (
+                  {newProduct.img ? (
                     <>
                       <GoImage size={20} />
                       <span>Ürün Fotoğrafını Düzenle</span>
@@ -263,21 +246,39 @@ const CategoryPage = () => {
                   id="file"
                   className="hidden"
                   accept="image/*"
-                  // onChange={handleChangePhoto}
+                  onChange={handleChangePhoto}
                 />
-                {newProduct.photo && <img src={newProduct.photo} alt="" />}
+                {newProduct.img && <img src={newProduct.img} alt="" />}
               </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Vazgeç
-                </Button>
+              <ModalFooter className="flex flex-row items-center justify-between">
                 <Button
-                  color="success"
-                  className="text-white"
-                  onPress={onClose}
+                  color="danger"
+                  onPress={() => {
+                    deleteProduct(newProduct._id);
+                    onClose();
+                  }}
                 >
-                  {modalType === "newProduct" ? "Ekle" : "Güncelle"}
+                  Ürünü Sil
                 </Button>
+                <div className="flex items-center space-x-2">
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    Vazgeç
+                  </Button>
+                  <Button
+                    color="success"
+                    className="text-white"
+                    onPress={() => {
+                      if (modalType === "newProduct") {
+                        postNewProduct();
+                      } else {
+                        editProduct();
+                      }
+                      onClose();
+                    }}
+                  >
+                    {modalType === "newProduct" ? "Ekle" : "Güncelle"}
+                  </Button>
+                </div>
               </ModalFooter>
             </>
           )}

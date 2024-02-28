@@ -1,26 +1,62 @@
 "use client";
-import Image from "next/image";
-import React, { useState } from "react";
+import { MainContext } from "@/app/context";
+import axios from "axios";
+import { useContext, useEffect, useState } from "react";
+import Slider from "react-slick";
 
 const Homepage = () => {
-  const [open, setOpen] = useState(true);
+  const [sliders, setSliders] = useState([]);
 
-  console.log(open);
+  const context = useContext(MainContext);
+  const { details } = context;
+  const { firstTouch } = details;
+  const { img, text } = firstTouch;
+
+  const sliderSettings = {
+    dots: false,
+    infinite: false,
+    speed: 500,
+    arrows: false,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+  };
+
+  useEffect(() => {
+    getSliders();
+  }, []);
+
+  const getSliders = () => {
+    axios.get("/api/site/sliders").then((res) => {
+      setSliders(res.data);
+    });
+  };
 
   return (
     <section>
-      <div className="bg-white py-5 md:py-10">
+      {/* <div className="bg-white py-5 md:py-10">
         <div className="container sm:mx-auto">
           <div className="grid grid-cols-8 gap-5 items-center">
             <div className="col-span-4 md:col-span-2 flex items-center pl-4">
-              <img src="/Petrov - Logo.png" alt="" className="h-10 object-cover" />
+              <img
+                src="/Petrov - Logo.png"
+                alt=""
+                className="h-10 object-cover"
+              />
             </div>
             <div className="col-span-4 hidden md:block">
               <ul className="hidden md:flex justify-center items-center space-x-4 font-poppins text-[16px] gap-[30px]">
-                <li>Hakkımızda</li>
-                <li>Menu</li>
-                <li>Shop</li>
-                <li>İletişim</li>
+                <li>
+                  <a href="#hakkimizda">Hakkımızda</a>
+                </li>
+                <li>
+                  <a href="#menu">Menu</a>
+                </li>
+                <li>
+                  <a href="#shop">Shop</a>
+                </li>
+                <li>
+                  <a href="#iletisim">İletişim</a>
+                </li>
               </ul>
             </div>
             <div className="col-span-4 md:hidden flex h-full justify-end items-center px-4">
@@ -29,36 +65,19 @@ const Homepage = () => {
             <div className="hidden md:block col-span-2"></div>
           </div>
         </div>
-      </div>
+      </div> */}
       <div className="relative ">
-        <img src="/Image.png" alt="" className="hidden md:block w-full" />
-        <img
-          src="eating.png"
-          alt=""
-          className="md:hidden w-full  object-cover"
-        />
-        {open && (
-          <div className="fixed bg-black/60 inset-0 items-center h-screen md:items-center justify-center  flex ">
-            <div className="relative w-2/3 md:w-2/5 md:p-10 rounded-xl">
-              <div className="absolute right-[-10px] md:right-5 top-[-10px] md:top-6">
-                <img
-                  src="/X Button.png"
-                  alt=""
-                  className="cursor-pointer"
-                  onClick={() => setOpen(false)}
-                />
-              </div>
-              <div>
-                <img src="/coffe.png" alt="" className="object-cover" />
-              </div>
-              <div className="bg-white w-full font-poppins  font-medium    items-center justify-center flex  py-3 md:py-6 rounded-b-xl">
-                <span className="text-center text-[12px] md:text-[18px]  ">
-                  MERHABA! SENİ GÖRMEK ÇOK GÜZEL
-                </span>
-              </div>
+        <Slider {...sliderSettings}>
+          {sliders.map((slider) => (
+            <div>
+              <img
+                src={slider.img}
+                alt=""
+                className="aspect-[1/1] md:aspect-[16/9] object-cover w-full"
+              />
             </div>
-          </div>
-        )}
+          ))}
+        </Slider>
       </div>
     </section>
   );

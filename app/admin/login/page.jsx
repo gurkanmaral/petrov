@@ -1,4 +1,6 @@
 "use client";
+import { MainContext } from "@/app/context";
+import { login } from "@/utils/auth";
 import {
   Button,
   Card,
@@ -6,17 +8,29 @@ import {
   CardFooter,
   CardHeader,
   Divider,
+  Input,
 } from "@nextui-org/react";
-import React, { useContext } from "react";
-import { Input } from "@nextui-org/react";
-import { CiLogin } from "react-icons/ci";
-import { MainContext } from "@/app/context";
 import { useRouter } from "next/navigation";
+import { useContext, useState } from "react";
+import { CiLogin } from "react-icons/ci";
 
 export default function page() {
-  const context = useContext(MainContext);
-  const { isAdmin, setIsAdmin } = context;
   const router = useRouter();
+  const context = useContext(MainContext);
+  const { setUser } = context;
+  const [input, setInput] = useState({ username: "", password: "" });
+
+  const handleSubmit = () => {
+    login(input.username, input.password)
+      .then((data) => {
+        console.log("--data", data);
+        setUser(true);
+        router.push("/admin/site/slider");
+      })
+      .catch((err) => {
+        console.log("err", err);
+      });
+  };
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-center">
       <img className="mb-10 h-10" src="/Petrov - Logo.png" />
@@ -32,15 +46,29 @@ export default function page() {
           </CardHeader>
           <Divider />
           <CardBody className="space-y-2 p-4">
-            <Input label="Kullanıcı Adı" variant="bordered" />
-            <Input label="Şifre" type="password" variant="bordered" />
+            <Input
+              label="Kullanıcı Adı"
+              variant="bordered"
+              value={input.username}
+              onChange={(e) =>
+                setInput((prev) => ({ ...prev, username: e.target.value }))
+              }
+            />
+            <Input
+              label="Şifre"
+              type="password"
+              variant="bordered"
+              value={input.password}
+              onChange={(e) =>
+                setInput((prev) => ({ ...prev, password: e.target.value }))
+              }
+            />
           </CardBody>
           <Divider />
           <CardFooter className="p-4">
             <Button
               onPress={() => {
-                setIsAdmin(true);
-                router.push("dashboard");
+                handleSubmit();
               }}
               className="w-full text-white"
               size="lg"
